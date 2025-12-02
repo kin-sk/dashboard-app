@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # バックエンド (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dashboard-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ~/.gitconfig:/root/.gitconfig:ro  # Gitの設定を引き継ぐ
+    environment:
+      - DATABASE_URL=mysql+pymysql://root:password@mysql:3306/dashboard_db
+      - PYTHONUNBUFFERED=1
+      - GIT_AUTHOR_NAME=${GIT_AUTHOR_NAME:-Your Name}
+      - GIT_AUTHOR_EMAIL=${GIT_AUTHOR_EMAIL:-your.email@example.com}
+      - GIT_COMMITTER_NAME=${GIT_COMMITTER_NAME:-Your Name}
+      - GIT_COMMITTER_EMAIL=${GIT_COMMITTER_EMAIL:-your.email@example.com}
+    depends_on:
+      - mysql
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # フロントエンド (Vue + TypeScript)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dashboard-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - ~/.gitconfig:/root/.gitconfig:ro  # Gitの設定を引き継ぐ
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - GIT_AUTHOR_NAME=${GIT_AUTHOR_NAME:-Your Name}
+      - GIT_AUTHOR_EMAIL=${GIT_AUTHOR_EMAIL:-your.email@example.com}
+      - GIT_COMMITTER_NAME=${GIT_COMMITTER_NAME:-Your Name}
+      - GIT_COMMITTER_EMAIL=${GIT_COMMITTER_EMAIL:-your.email@example.com}
+    command: npm run dev
+
+  # データベース (MySQL)
+  mysql:
+    image: mysql:8.0
+    container_name: dashboard-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=dashboard_db
+      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
+      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password
+
+volumes:
+  mysql_data:

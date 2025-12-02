@@ -1,0 +1,20 @@
+FROM node:20-alpine
+
+# Gitのインストール
+RUN apk add --no-cache git
+
+# 作業ディレクトリの設定
+WORKDIR /app
+
+# package.jsonをコピーして依存関係をインストール
+COPY package*.json ./
+RUN npm install
+
+# アプリケーションコードをコピー
+COPY . .
+
+# ポート公開
+EXPOSE 5173
+
+# 開発サーバーを起動
+CMD ["npm", "run", "dev", "--", "--host"]

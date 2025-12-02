@@ -1,0 +1,21 @@
+FROM rockylinux:8
+
+# 作業ディレクトリの設定
+WORKDIR /app
+
+# 必要なパッケージのインストール
+RUN dnf install -y python39 python39-pip python39-devel gcc mysql-devel git && \
+    dnf clean all
+
+# Pythonの依存関係をインストール
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# アプリケーションコードをコピー
+COPY . .
+
+# ポート公開
+EXPOSE 8000
+
+# Uvicornでアプリケーションを起動
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
