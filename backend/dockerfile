@@ -4,7 +4,8 @@ FROM rockylinux:8
 WORKDIR /app
 
 # 必要なパッケージのインストール
-RUN dnf install -y python39 python39-pip python39-devel gcc mysql-devel git && \
+RUN dnf install -y python39 python39-pip python39-devel gcc mysql-devel git \
+    libffi-devel openssl-devel && \
     dnf clean all
 
 # Pythonの依存関係をインストール

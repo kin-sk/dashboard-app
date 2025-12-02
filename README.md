@@ -7,6 +7,7 @@ Vue (TypeScript) + FastAPI (Python) + MySQL を使用したダッシュボード
 - **フロントエンド**: Vue 3 + TypeScript + Vite
 - **バックエンド**: FastAPI + Python 3.9 + Uvicorn
 - **データベース**: MySQL 8.0
+- **DB管理ツール**: phpMyAdmin
 - **インフラ**: Docker + Docker Compose
 - **OS**: Rocky Linux 8 (バックエンドコンテナ)
 
@@ -41,8 +42,14 @@ docker-compose up -d --build
 
 プロジェクトルートで以下のコマンドを実行：
 
+**PowerShellの場合:**
+```powershell
+docker compose up -d --build
+```
+
+**Git Bash/WSL/Linuxの場合:**
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 初回は以下の処理が実行されます：
@@ -55,51 +62,64 @@ docker-compose up -d --build
 - **フロントエンド**: http://localhost:5173
 - **バックエンドAPI**: http://localhost:8000
 - **API ドキュメント**: http://localhost:8000/docs
+- **phpMyAdmin**: http://localhost:8080
+  - ユーザー名: `root`
+  - パスワード: `password`
 - **MySQL**: localhost:3306
 
 ### 4. 停止方法
 
-```bash
-docker-compose down
+**PowerShellの場合:**
+```powershell
+docker compose down
 ```
 
 データベースを含めて完全に削除する場合：
 
+```powershell
+docker compose down -v
+```
+
+**Git Bash/WSL/Linuxの場合:**
 ```bash
-docker-compose down -v
+docker compose down
+docker compose down -v  # データベース含めて削除
 ```
 
 ## 開発時のコマンド
 
 ### ログの確認
 
-```bash
+**PowerShellの場合:**
+```powershell
 # 全てのサービスのログ
-docker-compose logs -f
+docker compose logs -f
 
 # 特定のサービスのログ
-docker-compose logs -f backend
-docker-compose logs -f frontend
-docker-compose logs -f mysql
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose logs -f mysql
 ```
 
 ### コンテナに入る
 
-```bash
+**PowerShellの場合:**
+```powershell
 # バックエンドコンテナ
-docker-compose exec backend bash
+docker compose exec backend bash
 
 # フロントエンドコンテナ
-docker-compose exec frontend sh
+docker compose exec frontend sh
 
 # MySQLコンテナ
-docker-compose exec mysql bash
+docker compose exec mysql bash
 ```
 
 ### MySQLに接続
 
-```bash
-docker-compose exec mysql mysql -u root -p
+**PowerShellの場合:**
+```powershell
+docker compose exec mysql mysql -u root -p
 # パスワード: password
 ```
 
@@ -130,21 +150,41 @@ dashboard-app/
 
 ## トラブルシューティング
 
+### PowerShellで docker-compose が使えない
+
+Docker Desktop最新版では `docker compose`（ハイフンなし）を使用します：
+
+```powershell
+# ✅ 正しい
+docker compose up -d
+
+# ❌ 古い書き方
+docker-compose up -d
+```
+
 ### ポートが既に使用されている
 
-他のアプリケーションがポート 5173, 8000, 3306 を使用している場合、`docker-compose.yml` のポート設定を変更してください。
+他のアプリケーションがポート 5173, 8000, 8080, 3306 を使用している場合、`docker-compose.yml` のポート設定を変更してください。
+
+例：phpMyAdminのポートを変更する場合
+```yaml
+phpmyadmin:
+  ports:
+    - "8081:80"  # 8080 → 8081 に変更
+```
 
 ### フロントエンドが起動しない
 
-```bash
-docker-compose logs frontend
+**PowerShellの場合:**
+```powershell
+docker compose logs frontend
 ```
 
 でエラーを確認してください。npm install のエラーの場合は：
 
-```bash
-docker-compose down
-docker-compose up -d --build
+```powershell
+docker compose down
+docker compose up -d --build
 ```
 
 ### データベース接続エラー
