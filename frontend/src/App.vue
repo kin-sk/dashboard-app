@@ -4,6 +4,7 @@ import { ref, onMounted } from 'vue'
 
 const router = useRouter()
 const isLoggedIn = ref(false)
+const drawer = ref(false)
 
 const checkAuth = () => {
   const token = localStorage.getItem('access_token')
@@ -18,7 +19,6 @@ const handleLogout = () => {
 
 onMounted(() => {
   checkAuth()
-  // ルート変更時にも認証状態を確認
   router.afterEach(() => {
     checkAuth()
   })
@@ -26,84 +26,75 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="app">
-    <header>
-      <nav>
-        <div class="nav-links">
-          <RouterLink to="/">ホーム</RouterLink>
-          <RouterLink v-if="isLoggedIn" to="/dashboard">ダッシュボード</RouterLink>
-        </div>
-        <div class="auth-links">
-          <template v-if="!isLoggedIn">
-            <RouterLink to="/login">ログイン</RouterLink>
-            <RouterLink to="/register" class="register-btn">新規登録</RouterLink>
-          </template>
-          <button v-else @click="handleLogout" class="logout-btn">ログアウト</button>
-        </div>
-      </nav>
-    </header>
-    <main>
-      <RouterView />
-    </main>
-  </div>
+  <v-app>
+    <!-- ナビゲーションバー -->
+    <v-app-bar color="primary" prominent>
+      <v-app-bar-nav-icon 
+        v-if="isLoggedIn" 
+        @click="drawer = !drawer"
+      ></v-app-bar-nav-icon>
+
+      <v-toolbar-title>Dashboard App</v-toolbar-title>
+
+      <v-spacer></v-spacer>
+
+      <!-- 未ログイン時のメニュー -->
+      <template v-if="!isLoggedIn">
+        <v-btn :to="'/login'" variant="text">
+          <v-icon start>mdi-login</v-icon>
+          ログイン
+        </v-btn>
+        <v-btn :to="'/register'" variant="tonal">
+          <v-icon start>mdi-account-plus</v-icon>
+          新規登録
+        </v-btn>
+      </template>
+
+      <!-- ログイン時のメニュー -->
+      <template v-else>
+        <v-btn @click="handleLogout" variant="text">
+          <v-icon start>mdi-logout</v-icon>
+          ログアウト
+        </v-btn>
+      </template>
+    </v-app-bar>
+
+    <!-- サイドナビゲーション（ログイン時のみ） -->
+    <v-navigation-drawer v-if="isLoggedIn" v-model="drawer" temporary>
+      <v-list>
+        <v-list-item 
+          prepend-icon="mdi-home" 
+          title="ホーム" 
+          :to="'/'"
+        ></v-list-item>
+        
+        <v-list-item 
+          prepend-icon="mdi-view-dashboard" 
+          title="ダッシュボード" 
+          :to="'/dashboard'"
+        ></v-list-item>
+
+        <v-divider class="my-2"></v-divider>
+
+        <v-list-item 
+          prepend-icon="mdi-account" 
+          title="プロフィール" 
+          :to="'/profile'"
+        ></v-list-item>
+        
+        <v-list-item 
+          prepend-icon="mdi-cog" 
+          title="設定" 
+          value="settings"
+        ></v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
+    <!-- メインコンテンツ -->
+    <v-main>
+      <v-container fluid>
+        <RouterView />
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
-
-<style scoped>
-header {
-  background-color: #2c3e50;
-  padding: 1rem;
-}
-
-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.nav-links, .auth-links {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-nav a {
-  color: white;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: background-color 0.3s;
-}
-
-nav a:hover {
-  background-color: #34495e;
-}
-
-nav a.router-link-active {
-  background-color: #42b983;
-}
-
-.register-btn {
-  background-color: #667eea !important;
-}
-
-.logout-btn {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s;
-}
-
-.logout-btn:hover {
-  background-color: #c0392b;
-}
-
-main {
-  padding: 2rem;
-}
-</style>

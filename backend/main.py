@@ -92,3 +92,43 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
 @app.post("/api/auth/logout")
 async def logout():
     return {"message": "ログアウトしました"}
+
+# ユーザー情報更新エンドポイント
+@app.put("/api/auth/me", response_model=UserResponse)
+async def update_user_profile(
+    user_data: dict,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    # ユーザー名の更新（提供されている場合）
+    if "username" in user_data:
+        # 重複チェック
+        existing_user = db.query(User).filter(
+            User.username == user_data["username"],
+            User.id != current_user.id
+        ).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="このユーザー名は既に使用されています"
+            )
+        current_user.username = user_data["username"]
+    
+    # メールアドレスの更新（提供されている場合）
+    if "email" in user_data:
+        # 重複チェック
+        existing_email = db.query(User).filter(
+            User.email == user_data["email"],
+            User.id != current_user.id
+        ).first()
+        if existing_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="このメールアドレスは既に使用されています"
+            )
+        current_user.email = user_data["email"]
+    
+    db.commit()
+    db.refresh(current_user)
+    
+    return current_user
