@@ -77,12 +77,6 @@ const handleLogin = async () => {
       <div class="register-link">
         <p>アカウントをお持ちでない方は <RouterLink to="/register">新規登録</RouterLink></p>
       </div>
-
-      <div class="test-info">
-        <p><strong>テストアカウント:</strong></p>
-        <p>メール: test@example.com</p>
-        <p>パスワード: password123</p>
-      </div>
     </div>
   </div>
 </template>
@@ -184,18 +178,5 @@ input:focus {
 
 .register-link a:hover {
   text-decoration: underline;
-}
-
-.test-info {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  color: #7f8c8d;
-}
-
-.test-info p {
-  margin: 0.25rem 0;
 }
 </style>
