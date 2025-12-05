@@ -1,217 +1,162 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { useRegister } from '@/composables/useRegister'
 
-const router = useRouter()
+const {
+  // 状態
+  username,
+  email,
+  password,
+  confirmPassword,
+  loading,
+  errorMessage,
+  
+  // バリデーション
+  usernameRules,
+  emailRules,
+  passwordRules,
+  confirmPasswordRules,
+  
+  // 便利なプロパティ
+  passwordStrength,
+  
+  // メソッド
+  register,
+} = useRegister()
 
-const username = ref('')
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
-const errorMessage = ref('')
-const isLoading = ref(false)
-
-const handleRegister = async () => {
-  errorMessage.value = ''
-
-  // パスワード確認
-  if (password.value !== confirmPassword.value) {
-    errorMessage.value = 'パスワードが一致しません'
-    return
+// パスワード強度の色を取得
+const getStrengthColor = (strength: string) => {
+  switch (strength) {
+    case 'weak': return 'error'
+    case 'medium': return 'warning'
+    case 'strong': return 'success'
+    default: return 'grey'
   }
+}
 
-  if (password.value.length < 6) {
-    errorMessage.value = 'パスワードは6文字以上で入力してください'
-    return
-  }
-
-  isLoading.value = true
-
-  try {
-    await axios.post('http://localhost:8000/api/auth/register', {
-      username: username.value,
-      email: email.value,
-      password: password.value
-    })
-
-    // 登録成功後、ログインページへ
-    alert('登録が完了しました！ログインしてください。')
-    router.push('/login')
-  } catch (error: any) {
-    if (error.response) {
-      errorMessage.value = error.response.data.detail || '登録に失敗しました'
-    } else {
-      errorMessage.value = 'サーバーに接続できません'
-    }
-  } finally {
-    isLoading.value = false
+// パスワード強度のラベルを取得
+const getStrengthLabel = (strength: string) => {
+  switch (strength) {
+    case 'weak': return '弱い'
+    case 'medium': return '普通'
+    case 'strong': return '強い'
+    default: return ''
   }
 }
 </script>
 
 <template>
-  <div class="register-container">
-    <div class="register-card">
-      <h1>新規登録</h1>
-      
-      <form @submit.prevent="handleRegister">
-        <div class="form-group">
-          <label for="username">ユーザー名</label>
-          <input
-            id="username"
-            v-model="username"
-            type="text"
-            placeholder="ユーザー名"
-            required
-          />
-        </div>
+  <v-container class="fill-height">
+    <v-row justify="center" align="center">
+      <v-col cols="12" sm="10" md="8" lg="6">
+        <v-card elevation="8">
+          <v-card-title class="text-h5 text-center pa-6 bg-secondary">
+            <v-icon left size="large" class="mr-2">mdi-account-plus</v-icon>
+            新規登録
+          </v-card-title>
 
-        <div class="form-group">
-          <label for="email">メールアドレス</label>
-          <input
-            id="email"
-            v-model="email"
-            type="email"
-            placeholder="example@example.com"
-            required
-          />
-        </div>
+          <v-card-text class="pa-6">
+            <v-alert
+              v-if="errorMessage"
+              type="error"
+              variant="tonal"
+              closable
+              class="mb-4"
+            >
+              {{ errorMessage }}
+            </v-alert>
 
-        <div class="form-group">
-          <label for="password">パスワード</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            placeholder="パスワード（6文字以上）"
-            required
-          />
-        </div>
+            <v-form @submit.prevent="register">
+              <v-text-field
+                v-model="username"
+                label="ユーザー名"
+                prepend-inner-icon="mdi-account"
+                :rules="usernameRules"
+                variant="outlined"
+                class="mb-4"
+                hint="3文字以上、英数字とアンダースコアのみ"
+                required
+              ></v-text-field>
 
-        <div class="form-group">
-          <label for="confirmPassword">パスワード（確認）</label>
-          <input
-            id="confirmPassword"
-            v-model="confirmPassword"
-            type="password"
-            placeholder="パスワード（確認）"
-            required
-          />
-        </div>
+              <v-text-field
+                v-model="email"
+                label="メールアドレス"
+                prepend-inner-icon="mdi-email"
+                :rules="emailRules"
+                type="email"
+                variant="outlined"
+                class="mb-4"
+                required
+              ></v-text-field>
 
-        <div v-if="errorMessage" class="error-message">
-          {{ errorMessage }}
-        </div>
+              <v-text-field
+                v-model="password"
+                label="パスワード"
+                prepend-inner-icon="mdi-lock"
+                :rules="passwordRules"
+                type="password"
+                variant="outlined"
+                class="mb-2"
+                hint="8文字以上"
+                required
+              ></v-text-field>
 
-        <button type="submit" :disabled="isLoading" class="register-button">
-          {{ isLoading ? '登録中...' : '登録' }}
-        </button>
-      </form>
+              <!-- パスワード強度インジケーター -->
+              <div v-if="password" class="mb-4">
+                <v-chip
+                  :color="getStrengthColor(passwordStrength)"
+                  size="small"
+                  variant="flat"
+                >
+                  強度: {{ getStrengthLabel(passwordStrength) }}
+                </v-chip>
+              </div>
 
-      <div class="login-link">
-        <p>既にアカウントをお持ちの方は <RouterLink to="/login">ログイン</RouterLink></p>
-      </div>
-    </div>
-  </div>
+              <v-text-field
+                v-model="confirmPassword"
+                label="パスワード（確認）"
+                prepend-inner-icon="mdi-lock-check"
+                :rules="confirmPasswordRules"
+                type="password"
+                variant="outlined"
+                class="mb-4"
+                required
+              ></v-text-field>
+
+              <v-btn
+                type="submit"
+                color="secondary"
+                size="large"
+                block
+                :loading="loading"
+                class="mb-4"
+              >
+                <v-icon start>mdi-account-plus</v-icon>
+                登録
+              </v-btn>
+            </v-form>
+
+            <v-divider class="my-4"></v-divider>
+
+            <div class="text-center">
+              <p class="text-body-2 mb-2">既にアカウントをお持ちの方</p>
+              <v-btn
+                :to="'/login'"
+                variant="outlined"
+                color="primary"
+              >
+                <v-icon start>mdi-login</v-icon>
+                ログイン
+              </v-btn>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <style scoped>
-.register-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.fill-height {
   min-height: 80vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
-}
-
-.register-card {
-  background: white;
-  padding: 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  max-width: 400px;
-}
-
-h1 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 2rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #34495e;
-  font-weight: 500;
-}
-
-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-  box-sizing: border-box;
-}
-
-input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.error-message {
-  background: #ffe0e0;
-  color: #d63031;
-  padding: 0.75rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.register-button {
-  width: 100%;
-  padding: 0.875rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.register-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-.register-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.login-link {
-  text-align: center;
-  margin-top: 1.5rem;
-  color: #7f8c8d;
-}
-
-.login-link a {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.login-link a:hover {
-  text-decoration: underline;
 }
 </style>

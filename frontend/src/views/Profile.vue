@@ -1,115 +1,29 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
-import { useRouter } from 'vue-router'
-import { API_BASE_URL, API_ENDPOINTS, STORAGE_KEYS } from '@/constants/api'
-import { VALIDATION_SETS } from '@/constants/validation'
-import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/constants/messages'
+import { useProfile } from '@/composables/useProfile'
 
-const router = useRouter()
-
-// フォームデータ
-const username = ref('')
-const email = ref('')
-const originalUsername = ref('')
-const originalEmail = ref('')
-
-// 状態管理
-const loading = ref(false)
-const saving = ref(false)
-const errorMessage = ref('')
-const successMessage = ref('')
-const isEditing = ref(false)
-
-// バリデーションルール（定数から取得）
-const usernameRules = VALIDATION_SETS.username
-const emailRules = VALIDATION_SETS.email
-
-// ユーザー情報を取得
-const fetchUserProfile = async () => {
-  loading.value = true
-  errorMessage.value = ''
+// クラスベースのロジックを使用
+const {
+  // 状態
+  username,
+  email,
+  loading,
+  saving,
+  isEditing,
+  errorMessage,
+  successMessage,
   
-  try {
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
-    const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.AUTH.ME}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-    
-    username.value = response.data.username
-    email.value = response.data.email
-    originalUsername.value = response.data.username
-    originalEmail.value = response.data.email
-  } catch (error: any) {
-    if (error.response?.status === 401) {
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-      router.push('/login')
-    } else {
-      errorMessage.value = ERROR_MESSAGES.FETCH_FAILED
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-// プロフィールを更新
-const updateProfile = async () => {
-  errorMessage.value = ''
-  successMessage.value = ''
-  saving.value = true
+  // バリデーション
+  usernameRules,
+  emailRules,
   
-  try {
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
-    const response = await axios.put(
-      `${API_BASE_URL}${API_ENDPOINTS.AUTH.ME}`,
-      {
-        username: username.value,
-        email: email.value
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    )
-    
-    successMessage.value = SUCCESS_MESSAGES.PROFILE_UPDATED
-    originalUsername.value = response.data.username
-    originalEmail.value = response.data.email
-    isEditing.value = false
-    
-    setTimeout(() => {
-      successMessage.value = ''
-    }, 3000)
-  } catch (error: any) {
-    if (error.response?.status === 401) {
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-      router.push('/login')
-    } else {
-      errorMessage.value = error.response?.data?.detail || ERROR_MESSAGES.UPDATE_FAILED
-    }
-  } finally {
-    saving.value = false
-  }
-}
-
-// 編集をキャンセル
-const cancelEdit = () => {
-  username.value = originalUsername.value
-  email.value = originalEmail.value
-  isEditing.value = false
-  errorMessage.value = ''
-}
-
-onMounted(() => {
-  fetchUserProfile()
-})
+  // メソッド
+  updateProfile,
+  startEditing,
+  cancelEditing,
+} = useProfile()
 </script>
 
 <template>
-  <!-- 以前と同じHTMLテンプレート -->
   <v-container>
     <v-row justify="center">
       <v-col cols="12" md="8" lg="6">
@@ -181,7 +95,7 @@ onMounted(() => {
               <v-btn
                 color="primary"
                 variant="elevated"
-                @click="isEditing = true"
+                @click="startEditing"
               >
                 <v-icon start>mdi-pencil</v-icon>
                 編集
@@ -191,7 +105,7 @@ onMounted(() => {
             <template v-else>
               <v-btn
                 variant="text"
-                @click="cancelEdit"
+                @click="cancelEditing"
                 :disabled="saving"
               >
                 キャンセル
