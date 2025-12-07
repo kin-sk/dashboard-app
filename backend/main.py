@@ -132,3 +132,31 @@ async def update_user_profile(
     db.refresh(current_user)
     
     return current_user
+# パスワード変更エンドポイント
+from schemas import PasswordChange
+
+@app.put("/api/auth/change-password")
+async def change_password(
+    password_data: PasswordChange,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    # 現在のパスワードを確認
+    if not verify_password(password_data.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="現在のパスワードが正しくありません"
+        )
+    
+    # 新しいパスワードと確認用パスワードが一致するか確認
+    if password_data.new_password != password_data.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="新しいパスワードが一致しません"
+        )
+    
+    # パスワードを更新
+    current_user.password_hash = hash_password(password_data.new_password)
+    db.commit()
+    
+    return {"message": "パスワードを変更しました"}

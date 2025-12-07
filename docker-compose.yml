@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # バックエンド (FastAPI)
@@ -10,8 +10,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
-      - ~/.gitconfig:/root/.gitconfig:ro  # Gitの設定を引き継ぐ
+      - .:/workspace:cached
+      - ~/.gitconfig:/root/.gitconfig:ro
     environment:
       - DATABASE_URL=mysql+pymysql://root:password@mysql:3306/dashboard_db
       - PYTHONUNBUFFERED=1
@@ -21,7 +21,8 @@ services:
       - GIT_COMMITTER_EMAIL=${GIT_COMMITTER_EMAIL:-your.email@example.com}
     depends_on:
       - mysql
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    privileged: true
+    # commandは削除（手動起動）
 
   # フロントエンド (Vue + TypeScript)
   frontend:
@@ -32,9 +33,9 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend:/app
+      - ./frontend:/app:cached
       - /app/node_modules
-      - ~/.gitconfig:/root/.gitconfig:ro  # Gitの設定を引き継ぐ
+      - ~/.gitconfig:/root/.gitconfig:ro
     environment:
       - VITE_API_URL=http://localhost:8000
       - GIT_AUTHOR_NAME=${GIT_AUTHOR_NAME:-Your Name}
@@ -57,6 +58,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/mysql/migrations:/docker-entrypoint-initdb.d/migrations
     command: --default-authentication-plugin=mysql_native_password
 
   # phpMyAdmin (データベース管理ツール)

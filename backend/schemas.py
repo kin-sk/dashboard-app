@@ -32,3 +32,9 @@ class Token(BaseModel):
 # トークンデータ
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+# パスワード変更リクエスト
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+    confirm_password: str

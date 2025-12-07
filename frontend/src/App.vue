@@ -1,36 +1,36 @@
 <script setup lang="ts">
-import { RouterView, useRouter } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { RouterView, useRouter } from "vue-router";
+import { ref, onMounted } from "vue";
 
-const router = useRouter()
-const isLoggedIn = ref(false)
-const drawer = ref(false)
+const router = useRouter();
+const isLoggedIn = ref(false);
+const drawer = ref(false);
 
 const checkAuth = () => {
-  const token = localStorage.getItem('access_token')
-  isLoggedIn.value = !!token
-}
+  const token = localStorage.getItem("access_token");
+  isLoggedIn.value = !!token;
+};
 
 const handleLogout = () => {
-  localStorage.removeItem('access_token')
-  isLoggedIn.value = false
-  router.push('/login')
-}
+  localStorage.removeItem("access_token");
+  isLoggedIn.value = false;
+  router.push("/login");
+};
 
 onMounted(() => {
-  checkAuth()
+  checkAuth();
   router.afterEach(() => {
-    checkAuth()
-  })
-})
+    checkAuth();
+  });
+});
 </script>
 
 <template>
   <v-app>
     <!-- ナビゲーションバー -->
     <v-app-bar color="primary" prominent>
-      <v-app-bar-nav-icon 
-        v-if="isLoggedIn" 
+      <v-app-bar-nav-icon
+        v-if="isLoggedIn"
         @click="drawer = !drawer"
       ></v-app-bar-nav-icon>
 
@@ -62,29 +62,35 @@ onMounted(() => {
     <!-- サイドナビゲーション（ログイン時のみ） -->
     <v-navigation-drawer v-if="isLoggedIn" v-model="drawer" temporary>
       <v-list>
-        <v-list-item 
-          prepend-icon="mdi-home" 
-          title="ホーム" 
+        <v-list-item
+          prepend-icon="mdi-home"
+          title="ホーム"
           :to="'/'"
         ></v-list-item>
-        
-        <v-list-item 
-          prepend-icon="mdi-view-dashboard" 
-          title="ダッシュボード" 
+
+        <v-list-item
+          prepend-icon="mdi-view-dashboard"
+          title="ダッシュボード"
           :to="'/dashboard'"
         ></v-list-item>
 
         <v-divider class="my-2"></v-divider>
 
-        <v-list-item 
-          prepend-icon="mdi-account" 
-          title="プロフィール" 
+        <v-list-item
+          prepend-icon="mdi-account"
+          title="プロフィール"
           :to="'/profile'"
         ></v-list-item>
-        
-        <v-list-item 
-          prepend-icon="mdi-cog" 
-          title="設定" 
+
+        <v-list-item
+          prepend-icon="mdi-lock-reset"
+          title="パスワード変更"
+          :to="'/password-change'"
+        ></v-list-item>
+
+        <v-list-item
+          prepend-icon="mdi-cog"
+          title="設定"
           value="settings"
         ></v-list-item>
       </v-list>

@@ -1,13 +1,17 @@
-FROM node:20-alpine
+FROM node:20-slim
 
-# Gitのインストール
-RUN apk add --no-cache git
-
-# 作業ディレクトリの設定
 WORKDIR /app
 
-# package.jsonをコピーして依存関係をインストール
+# Gitをインストール
+RUN apt-get update && \
+    apt-get install -y git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# package.jsonとpackage-lock.jsonをコピー
 COPY package*.json ./
+
+# 依存関係をインストール
 RUN npm install
 
 # アプリケーションコードをコピー
@@ -16,5 +20,5 @@ COPY . .
 # ポート公開
 EXPOSE 5173
 
-# 開発サーバーを起動
-CMD ["npm", "run", "dev", "--", "--host"]
+# 開発サーバー起動（docker-compose.ymlでオーバーライド可能）
+CMD ["npm", "run", "dev"]
