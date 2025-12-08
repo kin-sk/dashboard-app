@@ -1,0 +1,84 @@
+{
+  "items": [
+    {
+      "id": "home",
+      "label": "ホーム",
+      "icon": "mdi-home",
+      "url": "/",
+      "target": "_self",
+      "type": "internal",
+      "order": 1,
+      "visible": true
+    },
+    {
+      "id": "dashboard",
+      "label": "ダッシュボード",
+      "icon": "mdi-view-dashboard",
+      "url": "/dashboard",
+      "target": "_self",
+      "type": "internal",
+      "order": 2,
+      "visible": true
+    },
+    {
+      "id": "blog",
+      "label": "ブログ",
+      "icon": "mdi-post",
+      "url": "/blog",
+      "target": "_self",
+      "type": "internal",
+      "order": 3,
+      "visible": true
+    },
+    {
+      "id": "projects",
+      "label": "プロジェクト",
+      "icon": "mdi-briefcase",
+      "url": "/projects",
+      "target": "_self",
+      "type": "internal",
+      "order": 4,
+      "visible": true
+    },
+    {
+      "id": "profile",
+      "label": "プロフィール",
+      "icon": "mdi-account",
+      "url": "/profile",
+      "target": "_self",
+      "type": "internal",
+      "order": 10,
+      "visible": true
+    },
+    {
+      "id": "password",
+      "label": "パスワード変更",
+      "icon": "mdi-lock-reset",
+      "url": "/password-change",
+      "target": "_self",
+      "type": "internal",
+      "order": 11,
+      "visible": true
+    },
+    {
+      "id": "github",
+      "label": "GitHub",
+      "icon": "mdi-github",
+      "url": "https://github.com",
+      "target": "_blank",
+      "type": "external",
+      "order": 20,
+      "visible": true
+    },
+    {
+      "id": "docs",
+      "label": "API ドキュメント",
+      "icon": "mdi-file-document",
+      "url": "http://localhost:8000/docs",
+      "target": "_blank",
+      "type": "external",
+      "order": 21,
+      "visible": true
+    }
+  ]
+}

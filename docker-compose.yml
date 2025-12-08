@@ -1,80 +1,38 @@
-version: "3.8"
-
 services:
-  # バックエンド (FastAPI)
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: dashboard-backend
+  web:
+    build: .
+    tty: true
+    stdin_open: true
+    working_dir: /srv/dashboard
     ports:
-      - "8000:8000"
+      - 8000:8000
+      - 5173:5173
     volumes:
-      - .:/workspace:cached
-      - ~/.gitconfig:/root/.gitconfig:ro
-    environment:
-      - DATABASE_URL=mysql+pymysql://root:password@mysql:3306/dashboard_db
-      - PYTHONUNBUFFERED=1
-      - GIT_AUTHOR_NAME=${GIT_AUTHOR_NAME:-Your Name}
-      - GIT_AUTHOR_EMAIL=${GIT_AUTHOR_EMAIL:-your.email@example.com}
-      - GIT_COMMITTER_NAME=${GIT_COMMITTER_NAME:-Your Name}
-      - GIT_COMMITTER_EMAIL=${GIT_COMMITTER_EMAIL:-your.email@example.com}
+      - ./:/srv/dashboard
     depends_on:
-      - mysql
+      - db
     privileged: true
-    # commandは削除（手動起動）
 
-  # フロントエンド (Vue + TypeScript)
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: dashboard-frontend
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app:cached
-      - /app/node_modules
-      - ~/.gitconfig:/root/.gitconfig:ro
-    environment:
-      - VITE_API_URL=http://localhost:8000
-      - GIT_AUTHOR_NAME=${GIT_AUTHOR_NAME:-Your Name}
-      - GIT_AUTHOR_EMAIL=${GIT_AUTHOR_EMAIL:-your.email@example.com}
-      - GIT_COMMITTER_NAME=${GIT_COMMITTER_NAME:-Your Name}
-      - GIT_COMMITTER_EMAIL=${GIT_COMMITTER_EMAIL:-your.email@example.com}
-    command: npm run dev
-
-  # データベース (MySQL)
-  mysql:
+  db:
     image: mysql:8.0
-    container_name: dashboard-mysql
-    ports:
-      - "3306:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=dashboard_db
-      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
-      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+      MYSQL_DATABASE: dashboard_db
+      MYSQL_ROOT_PASSWORD: password
+      TZ: 'Asia/Tokyo'
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./docker/mysql/migrations:/docker-entrypoint-initdb.d/migrations
-    command: --default-authentication-plugin=mysql_native_password
-
-  # phpMyAdmin (データベース管理ツール)
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: dashboard-phpmyadmin
     ports:
-      - "8080:80"
+      - 3306:3306
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - 8080:80
     environment:
-      - PMA_HOST=mysql
-      - PMA_PORT=3306
+      - PMA_HOST=db
       - PMA_USER=root
       - PMA_PASSWORD=password
-      - UPLOAD_LIMIT=300M
-    depends_on:
-      - mysql
 
 volumes:
   mysql_data:

@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { RouterView, useRouter } from "vue-router";
 import { ref, onMounted } from "vue";
+import { useMenu } from "@/composables/useMenu";
 
 const router = useRouter();
 const isLoggedIn = ref(false);
 const drawer = ref(false);
+
+// メニュー管理
+const { visibleItems } = useMenu();
 
 const checkAuth = () => {
   const token = localStorage.getItem("access_token");
@@ -15,6 +19,24 @@ const handleLogout = () => {
   localStorage.removeItem("access_token");
   isLoggedIn.value = false;
   router.push("/login");
+};
+
+// メニューアイテムをクリック
+const handleMenuClick = (item: any) => {
+  if (item.type === "external") {
+    // 外部リンク
+    window.open(item.url, item.target);
+  } else {
+    // 内部リンク
+    if (item.target === "_blank") {
+      // 新しいタブで開く
+      window.open(item.url, "_blank");
+    } else {
+      // 同じ画面で遷移
+      router.push(item.url);
+      drawer.value = false;
+    }
+  }
 };
 
 onMounted(() => {
@@ -62,37 +84,18 @@ onMounted(() => {
     <!-- サイドナビゲーション（ログイン時のみ） -->
     <v-navigation-drawer v-if="isLoggedIn" v-model="drawer" temporary>
       <v-list>
+        <!-- 動的メニュー -->
         <v-list-item
-          prepend-icon="mdi-home"
-          title="ホーム"
-          :to="'/'"
-        ></v-list-item>
-
-        <v-list-item
-          prepend-icon="mdi-view-dashboard"
-          title="ダッシュボード"
-          :to="'/dashboard'"
-        ></v-list-item>
-
-        <v-divider class="my-2"></v-divider>
-
-        <v-list-item
-          prepend-icon="mdi-account"
-          title="プロフィール"
-          :to="'/profile'"
-        ></v-list-item>
-
-        <v-list-item
-          prepend-icon="mdi-lock-reset"
-          title="パスワード変更"
-          :to="'/password-change'"
-        ></v-list-item>
-
-        <v-list-item
-          prepend-icon="mdi-cog"
-          title="設定"
-          value="settings"
-        ></v-list-item>
+          v-for="item in visibleItems"
+          :key="item.id"
+          :prepend-icon="item.icon"
+          :title="item.label"
+          @click="handleMenuClick(item)"
+        >
+          <template v-if="item.type === 'external'" #append>
+            <v-icon size="small">mdi-open-in-new</v-icon>
+          </template>
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
 
