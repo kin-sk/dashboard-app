@@ -5,7 +5,8 @@ import { useMenu } from "@/composables/useMenu";
 
 const router = useRouter();
 const isLoggedIn = ref(false);
-const drawer = ref(false);
+const rail = ref(true); // レール状態（アイコンのみ表示）
+const permanent = ref(true); // 常時表示
 
 // メニュー管理
 const { visibleItems } = useMenu();
@@ -34,9 +35,13 @@ const handleMenuClick = (item: any) => {
     } else {
       // 同じ画面で遷移
       router.push(item.url);
-      drawer.value = false;
     }
   }
+};
+
+// ナビゲーションアイコンをクリック（レール状態の切り替え）
+const toggleRail = () => {
+  rail.value = !rail.value;
 };
 
 onMounted(() => {
@@ -53,7 +58,8 @@ onMounted(() => {
     <v-app-bar color="primary" prominent>
       <v-app-bar-nav-icon
         v-if="isLoggedIn"
-        @click="drawer = !drawer"
+        :icon="rail ? 'mdi-menu' : 'mdi-menu-open'"
+        @click="toggleRail"
       ></v-app-bar-nav-icon>
 
       <v-toolbar-title>Dashboard App</v-toolbar-title>
@@ -82,7 +88,13 @@ onMounted(() => {
     </v-app-bar>
 
     <!-- サイドナビゲーション（ログイン時のみ） -->
-    <v-navigation-drawer v-if="isLoggedIn" v-model="drawer" temporary>
+    <v-navigation-drawer
+      v-if="isLoggedIn"
+      v-model="permanent"
+      expand-on-hover
+      :rail="rail"
+      permanent
+    >
       <v-list>
         <!-- 動的メニュー -->
         <v-list-item

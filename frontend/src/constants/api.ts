@@ -1,6 +1,5 @@
 // API Base URL
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:8000";
+export const API_BASE_URL = "http://localhost:8000";
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -11,6 +10,18 @@ export const API_ENDPOINTS = {
     LOGOUT: "/api/auth/logout",
     ME: "/api/auth/me",
     CHANGE_PASSWORD: "/api/auth/change-password",
+  },
+  // ブログ関連 ← 追加
+  BLOG: {
+    POSTS: "/api/posts",
+    POST_DETAIL: (id: number) => `/api/posts/${id}`,
+    CATEGORIES: "/api/categories",
+    TAGS: "/api/tags",
+  },
+  // プロジェクト関連（今後）
+  PROJECTS: {
+    LIST: "/api/projects",
+    DETAIL: (id: number) => `/api/projects/${id}`,
   },
   // 今後追加する機能用
   USERS: {
